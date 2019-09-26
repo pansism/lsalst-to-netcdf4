@@ -4,7 +4,7 @@ Extracts data from one or more SEVIRI LST HDF5 files, resamples them, stacks the
 ## Description
 This script gets as input one or more MSG-SEVIRI Land Surface Temperature (LST) HDF5 products (MLST LSA-001) from EUMETSAT's Satellite Application Facility on Land Surface Analysis (LSA-SAF) and extracts, for the given bounding box and for each input file, the LST, QF and errorbar datasets. The extracted datasets are first resampled to a regular latitude-longitude grid and then stacked according to their acquisition time. Finally, the resulting LST, QF and errorbar stacks are added to a netCDF4 file.
 
-MLST LSA-001 data can be downloaded free-of-charge from [https://landsaf.ipma.pt](https://landsaf.ipma.pt/en/products/land-surface-temperature/lst/).
+MLST LSA-001 data can be downloaded from [https://landsaf.ipma.pt](https://landsaf.ipma.pt/en/products/land-surface-temperature/lst/).
 
 ## Usage 
 1. Place an order on [https://landsaf.ipma.pt](https://landsaf.ipma.pt/en/products/land-surface-temperature/lst/) for SEVIRI LST data.
