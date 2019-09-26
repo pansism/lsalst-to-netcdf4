@@ -340,11 +340,3 @@ def LSALSTstack2NetCDF(h5dir, savedir, savename, latN, latS, lonW, lonE, hres=0.
     print(f"NetCDF4 data dimensions: {nc_dims}")
     print(f"HDF5 files discarded due to cloud gaps: {len(h5_files)-nc_dims[0]}")
     print(f"Output netCDF4 saved in: {savepath}")
-
-if __name__ == "__main__":
-
-    project_folder = r"C:\Users\User\Desktop\test"
-    datadir = r"C:\Users\User\Dropbox\MyCodeRepository\Sandbox\FusCubeData\h5"
-
-    colrow_grid = LSALSTstack2NetCDF(h5dir=datadir, savedir=project_folder, savename = "testcdf", latN=30, latS=20, lonW=20, lonE=50)
-            
