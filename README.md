@@ -13,7 +13,7 @@ MLST LSA-001 data can be downloaded free-of-charge from [https://landsaf.ipma.pt
     * the directory of the unzipped HDF5 data;
     * a savedir and a savename for the output netCDF4;
     * the bounding box lat/lon coordinates; and 
-    * the resolution of the putput grid.
+    * the resolution of the output grid.
 
 ## Useful links
 * [MLST LSA-001 Product Manual](https://landsaf.ipma.pt/GetDocument.do?id=746)
@@ -23,4 +23,4 @@ MLST LSA-001 data can be downloaded free-of-charge from [https://landsaf.ipma.pt
 * [MSG-SEVIRI](https://www.eumetsat.int/website/home/Satellites/CurrentSatellites/Meteosat/index.html)
 
 ## License
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
