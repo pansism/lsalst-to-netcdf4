@@ -102,8 +102,9 @@ def latlon2rowcol(lat, lon, product_attrs):
     x = degrees(atan(-1.0 * r_x / r_z))
     y = degrees(asin(-1.0 * r_y / r_n))
 
-    col = int(product_attrs["COFF"] + round(x * pow(2.0, -16) * product_attrs["CFAC"]))
-    row = int(product_attrs["LOFF"] + round(y * pow(2.0, -16) * product_attrs["LFAC"]))
+    # Subtract 1 from COFF and LOFF to change origin from (1,1) to (0,0).
+    col = int(product_attrs["COFF"]-1 + round(x * pow(2.0, -16) * product_attrs["CFAC"]))
+    row = int(product_attrs["LOFF"]-1 + round(y * pow(2.0, -16) * product_attrs["LFAC"]))
     if col > product_attrs["NC"] or row > product_attrs["NL"]:
         raise ValueError(f"A col/row value cannot be greater than {product_attrs['NC']}.")
 
@@ -125,11 +126,21 @@ def _BBox2RowColGrids(bbox, hres, vres, product_attrs):
         col_grid {np.array} -- A regular grid with the HDF5 column of each grid cell.
     """
     if hres > 0 and vres > 0:
-        lats = np.arange(start=bbox["north_lat"], stop=bbox["south_lat"], step=-1*vres)
-        lons = np.arange(start=bbox["west_lon"], stop=bbox["east_lon"], step=hres)
-        
+
+        grid_dim = (
+            abs(bbox["north_lat"] - bbox["south_lat"]) / vres + 1,
+            abs(bbox["west_lon"] - bbox["east_lon"]) / hres + 1,
+        )
+        lats = np.linspace(
+            start=bbox["north_lat"], stop=bbox["south_lat"], num=grid_dim[0], endpoint=True
+        )
+        lons = np.linspace(
+            start=bbox["west_lon"], stop=bbox["east_lon"], num=grid_dim[1], endpoint=True
+        )
+
         row_grid = np.full(shape=(len(lats), len(lons)), fill_value=-1, dtype='int16')
         col_grid = np.full(shape=(len(lats), len(lons)), fill_value=-1, dtype='int16')
+
         for r, lat in enumerate(lats, start=0):
             for c, lon in enumerate(lons, start=0):   
                 col, row = latlon2rowcol(lat, lon, product_attrs)
@@ -254,7 +265,7 @@ def LSALSTstack2NetCDF(h5dir, savedir, savename, latN, latS, lonW, lonE, hres=0.
     if latN > latS and lonE > lonW:
         bbox = {"north_lat": latN, "south_lat": latS, "west_lon": lonW, "east_lon": lonE}
     else: raise ValueError("latN and lonE must by greater than latS and lonW, respectively.")
-    
+
     row_grid, col_grid = _BBox2RowColGrids(bbox, vres, hres, prod_attrs)
     
     print(f"\n{LSALSTstack2NetCDF.__name__} started at {start.strftime('%I:%M%p')}.")
@@ -272,22 +283,26 @@ def LSALSTstack2NetCDF(h5dir, savedir, savename, latN, latS, lonW, lonE, hres=0.
     if not os.path.exists(savedir): os.makedirs(savedir)
     savepath = os.path.join(savedir, savename + ".nc")
     
-    with nc.Dataset(savepath, mode="w",  format='NETCDF4_CLASSIC') as ncfile:
+    with nc.Dataset(savepath, mode="w",  format="NETCDF4_CLASSIC", WRITE_GDAL_TAGS="YES") as ncfile:
         
         ncfile.title = "Stack of Gridded SEVIRI LST from LandSAF"
-        ncfile.description = "Add text"
         ncfile.date_created = f"Created: " + datetime.now().strftime("%Y-%m-%d %H:%M")
-        ncfile.createDimension('time', None)
-        ncfile.createDimension('lat', row_grid.shape[0])
+        ncfile.createDimension("time", None)
+        ncfile.createDimension("lat", row_grid.shape[0])
         ncfile.createDimension("lon", row_grid.shape[1])
 
+        # netcdf uses as origin the cell center coordinates and not the upper-left or lower-right.
+        # To address this, the lat, lon arraus are adjusted by adding and subtacting half a pixel.
         lat = ncfile.createVariable('lat', np.float32, ('lat',))
         lat.units = 'degrees_north'
-        lat[:] = np.arange(bbox["north_lat"],bbox["south_lat"],-1*vres)
-        
+        lat[:] = np.linspace(
+            bbox["north_lat"] - hres / 2, bbox["south_lat"] + hres / 2, num=row_grid.shape[0], endpoint=True
+        ) 
         lon = ncfile.createVariable('lon', np.float32, ('lon',))
-        lon.units = 'degrees_east'
-        lon[:] = np.arange(bbox["west_lon"],bbox["east_lon"],hres)
+        lon.units = 'degrees_east'   
+        lon[:] = np.linspace(
+            bbox["west_lon"] + hres / 2, bbox["east_lon"] - hres / 2, num=row_grid.shape[1], endpoint=True
+        )
 
         crs = ncfile.createVariable("WGS84", "c")
         crs.spatial_ref = """GEOGCS["WGS 84",]\
@@ -340,3 +355,10 @@ def LSALSTstack2NetCDF(h5dir, savedir, savename, latN, latS, lonW, lonE, hres=0.
     print(f"NetCDF4 data dimensions: {nc_dims}")
     print(f"HDF5 files discarded due to cloud gaps: {len(h5_files)-nc_dims[0]}")
     print(f"Output netCDF4 saved in: {savepath}")
+
+if __name__ == "__main__":
+
+    project_folder = "/Users/panosis/Dropbox/MyCodeRepository/sandbox/Data"
+    datadir = "/Users/panosis/Dropbox/MyCodeRepository/sandbox/Data/lsalst_h5_sample"
+
+    LSALSTstack2NetCDF(savedir=project_folder, savename="downscalingtest_8", h5dir=datadir, latN=38.5, latS=37.5, lonW=23.2, lonE=24.2)
