@@ -27,7 +27,7 @@ Current version: 1.1 | Supports Python 3.7
 
 Changelog: 
     25/09/2019: v1.0 - Release Date. 
-    09/10/2019: v1.1 - Fixed a geocoding bug.           
+    09/10/2019: v1.1 - Fixed a bug in geocoding.           
 -------------------------------------------------------------------------------------
 
 AUTHOR:       Panagiotis Sismanidis
