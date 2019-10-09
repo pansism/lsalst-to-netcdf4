@@ -23,10 +23,11 @@ CAUTION: This script assumes that the input directory contains ONLY
 
 
 -------------------------------------------------------------------------------------
-Current version: 1.0 | Supports Python 3.7
+Current version: 1.1 | Supports Python 3.7
 
 Changelog: 
-    25/09/2019: v1.0 - Release Date.          
+    25/09/2019: v1.0 - Release Date. 
+    09/10/2019: v1.1 - Fixed a geocoding bug.           
 -------------------------------------------------------------------------------------
 
 AUTHOR:       Panagiotis Sismanidis
