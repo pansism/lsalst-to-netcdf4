@@ -358,10 +358,3 @@ def LSALSTstack2NetCDF(h5dir, savedir, savename, latN, latS, lonW, lonE, hres=0.
     print(f"NetCDF4 data dimensions: {nc_dims}")
     print(f"HDF5 files discarded due to cloud gaps: {len(h5_files)-nc_dims[0]}")
     print(f"Output netCDF4 saved in: {savepath}")
-
-if __name__ == "__main__":
-
-    project_folder = "/Users/panosis/Dropbox/MyCodeRepository/sandbox/Data"
-    datadir = "/Users/panosis/Dropbox/MyCodeRepository/sandbox/Data/lsalst_h5_sample"
-
-    LSALSTstack2NetCDF(savedir=project_folder, savename="downscalingtest_8", h5dir=datadir, latN=38.5, latS=37.5, lonW=23.2, lonE=24.2)
