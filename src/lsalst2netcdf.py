@@ -133,12 +133,14 @@ def _BBox2RowColGrids(bbox, hres, vres, product_attrs):
             abs(bbox["west_lon"] - bbox["east_lon"]) / hres + 1,
         )
         
+        # netcdf uses as origin the cell center coordinates and not the upper-left or lower-right.
+        # To address this, the lat, lon arrays are adjusted by subtacting half a pixel.
         lats = np.linspace(
-            start=bbox["north_lat"], stop=bbox["south_lat"], num=grid_dim[0], endpoint=True
+            start=bbox["north_lat"] - vres/2, stop=bbox["south_lat"] + vres/2, num=grid_dim[0], endpoint=True
         )
         
         lons = np.linspace(
-            start=bbox["west_lon"], stop=bbox["east_lon"], num=grid_dim[1], endpoint=True
+            start=bbox["west_lon"] + hres/2, stop=bbox["east_lon"] - hres/2, num=grid_dim[1], endpoint=True
         )
 
         row_grid = np.full(shape=(len(lats), len(lons)), fill_value=-1, dtype='int16')
@@ -294,17 +296,15 @@ def LSALSTstack2NetCDF(h5dir, savedir, savename, latN, latS, lonW, lonE, hres=0.
         ncfile.createDimension("lat", row_grid.shape[0])
         ncfile.createDimension("lon", row_grid.shape[1])
 
-        # netcdf uses as origin the cell center coordinates and not the upper-left or lower-right.
-        # To address this, the lat, lon arraus are adjusted by adding and subtacting half a pixel.
         lat = ncfile.createVariable('lat', np.float32, ('lat',))
         lat.units = 'degrees_north'
         lat[:] = np.linspace(
-            bbox["north_lat"] - hres / 2, bbox["south_lat"] + hres / 2, num=row_grid.shape[0], endpoint=True
+            bbox["north_lat"], bbox["south_lat"], num=row_grid.shape[0], endpoint=True
         ) 
         lon = ncfile.createVariable('lon', np.float32, ('lon',))
         lon.units = 'degrees_east'   
         lon[:] = np.linspace(
-            bbox["west_lon"] + hres / 2, bbox["east_lon"] - hres / 2, num=row_grid.shape[1], endpoint=True
+            bbox["west_lon"], bbox["east_lon"], num=row_grid.shape[1], endpoint=True
         )
 
         crs = ncfile.createVariable("WGS84", "c")
