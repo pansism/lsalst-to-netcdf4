@@ -1,5 +1,5 @@
 # lsalst-to-netcdf4
-Extracts data from one or more SEVIRI LST HDF5 files, resamples them, stacks them, and adds them to a new netCDF4. 
+Extracts data from one or more SEVIRI LST HDF5 files, geocodes them, stacks them, and adds them to a new netCDF4. 
 
 ## Description
 This script gets as input one or more MSG-SEVIRI Land Surface Temperature (LST) HDF5 products (MLST LSA-001) from EUMETSAT's Satellite Application Facility on Land Surface Analysis (LSA-SAF) and extracts, for the given bounding box and for each input file, the LST, QF and errorbar datasets. The extracted datasets are first resampled (using nearest neighbor) to a regular latitude-longitude grid and then stacked according to their acquisition time. Finally, the resulting LST, QF and errorbar stacks are added to a netCDF4 file.
