@@ -16,18 +16,19 @@ bands.
 To download MLST LSA-001 data go to:
     https://landsaf.ipma.pt/en/products/land-surface-temperature/lst/
 
-USAGE:   To use this script call the function LSALSTstack2NetCDF().
+USAGE:  python lsalst2netcdf.py h5dir savedir savename latN, latS, lonW, lonE -r 0.05 0.05
 
 CAUTION: This script assumes that the input directory contains ONLY
          unzipped MLST LSA-001 hdf5 files.
 
 
 -------------------------------------------------------------------------------------
-Current version: 1.1 | Supports Python 3.7
+Current version: 1.2 | Supports Python 3.7
 
 Changelog: 
     25/09/2019: v1.0 - Release Date. 
-    09/10/2019: v1.1 - Fixed a bug in geocoding.           
+    09/10/2019: v1.1 - Fixed a bug in geocoding.  
+    22/01/2020: v1.2 - Added a CLI.         
 -------------------------------------------------------------------------------------
 
 AUTHOR:       Panagiotis Sismanidis
@@ -39,14 +40,36 @@ enjoy!
 
 """
 
+import argparse
 import concurrent.futures
 import h5py
 import netCDF4 as nc
 import numpy as np
-import os
+import os, sys
 from datetime import datetime
 from math import sin, cos, tan, asin, atan, sqrt, pow, radians, degrees
 
+
+def __progressbar(total, iteration, message):
+    """
+    Displays or updates a console progress bar.
+    Original Source: https://stackoverflow.com/a/45868571/11655162
+    """
+    barLength, status = 30, ""
+    progress = float(iteration) / float(total)
+    if progress >= 1.0:
+        progress, status = 1, "\r\n"
+    block = int(round(barLength * progress))
+    text = "\r{} [{}] {:.0f}% [Working on h5 {} of {}] {}".format(
+        message,
+        "#" * block + "-" * (barLength - block),
+        round(progress * 100, 0),
+        iteration,
+        total,
+        status,
+    )
+    sys.stdout.write(text)
+    sys.stdout.flush()
 
 def _GetProductAttributes(h5_file):
     """Returns a dictionary with the HDF's global attributes and dataset names.
@@ -64,7 +87,6 @@ def _GetProductAttributes(h5_file):
             attrs_dic["DSNAMES"] = [ds for ds in h5.keys()]
 
     return attrs_dic
-
 
 def latlon2rowcol(lat, lon, product_attrs):
     """This function solves the forward GEOS projection function for\
@@ -117,7 +139,6 @@ def latlon2rowcol(lat, lon, product_attrs):
 
     return col, row
 
-
 def _BBox2RowColGrids(bbox, hres, vres, product_attrs):
     """This function returns a regular grid that covers the given BBox and\
        stores in each cell the coresponding HDF5 row and column values.
@@ -166,7 +187,6 @@ def _BBox2RowColGrids(bbox, hres, vres, product_attrs):
     else:
         raise ValueError("The grid resolution cannot be negative or zero.")
 
-
 def _ReadH5DatasetAsArray(h5_file, row_grid, col_grid, dataset):
     """This function reads data from a valid MLST LSA-001 dataset; it then resamples them\
        to a regular lat-lon grid; and calulates a flag that indicates if all the data\
@@ -202,7 +222,6 @@ def _ReadH5DatasetAsArray(h5_file, row_grid, col_grid, dataset):
     else:
         validscene_flag = False
         return None, validscene_flag
-
 
 def _GetDataFromHDF5(h5_filepath, row_grid, col_grid, product_attrs):
     """This function opens a valid MLST LSA-001 HDF5 file and gets: a flag\
@@ -247,7 +266,6 @@ def _GetDataFromHDF5(h5_filepath, row_grid, col_grid, product_attrs):
 
     return out_list
 
-
 def LSALSTstack2NetCDF(
     h5dir, savedir, savename, latN, latS, lonW, lonE, hres=0.05, vres=0.05
 ):
@@ -286,10 +304,11 @@ def LSALSTstack2NetCDF(
     except FileNotFoundError as err:
         print(err)
 
+    # Estimate the centre coordinates of the outermost pixels using the input
+    # BBox coordinates (they refer to the Upper-left / Lower-Right corners
+    # of the outermost pixels).
     if latN > latS and lonE > lonW:
-        # Estimate the centre coordinates of the outermost pixels using the input
-        # BBox coordinates (they refer to the Upper-left / Lower-Right corners
-        # of the outermost pixels).
+
         bbox = {
             "north_lat": latN - vres / 2,
             "south_lat": latS + vres / 2,
@@ -398,6 +417,9 @@ def LSALSTstack2NetCDF(
             h5_data = executor.map(_GetDataFromHDF5, *zip(*args_list))
             i = 0
             for data in h5_data:
+
+                __progressbar(len(h5_files), i + 1, message="Progress:")
+
                 if data[0] == True:
                     LST[i, :, :] = data[1]
                     QF[i, :, :] = data[2]
@@ -417,3 +439,54 @@ def LSALSTstack2NetCDF(
         f"HDF5 files discarded due to increased cloudcover: {len(h5_files)-nc_dims[0]}"
     )
     print(f"Output netCDF4 saved in: {savepath}")
+
+def main():
+    """Command Line Interface"""
+    parser = argparse.ArgumentParser(
+        description="Make a netCDF4 file from one or more MLST LSA-001 hdf5 files.",
+        epilog="CAUTION: the input file dir should contain ONLY hdf5 files.",
+    )
+
+    parser.add_argument(
+        "indir", type=str, help="the path where the input hdf5 files are stored."
+    )
+    parser.add_argument(
+        "savedir",
+        type=str,
+        help="the path where the output NETCDF4 file will be stored.",
+    )
+    parser.add_argument(
+        "nc_name", type=str, help="the filename of the output NETCDF4 file."
+    )
+    parser.add_argument(
+        "bbox",
+        type=float,
+        nargs=4,
+        help="the bounding box coordinates (latN, latS, lonW, lonE).",
+    )
+    parser.add_argument(
+        "-r",
+        "--res",
+        metavar="X.XX",
+        nargs=2,
+        type=float,
+        default=[0.05, 0.05],
+        help="the horizontal and vertical resolution of the resampled data.",
+    )
+
+    args = parser.parse_args()
+
+    LSALSTstack2NetCDF(
+        args.indir,
+        args.savedir,
+        args.nc_name,
+        latN=args.bbox[0],
+        latS=args.bbox[1],
+        lonW=args.bbox[2],
+        lonE=args.bbox[3],
+        hres=args.res[0],
+        vres=args.res[1],
+    )
+
+if __name__ == "__main__":
+    main()
