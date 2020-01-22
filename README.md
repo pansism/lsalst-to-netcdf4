@@ -9,11 +9,16 @@ MLST LSA-001 data can be downloaded from [https://landsaf.ipma.pt](https://lands
 ## Usage 
 1. Place an order on [https://landsaf.ipma.pt](https://landsaf.ipma.pt/en/products/land-surface-temperature/lst/) for SEVIRI LST data.
 2. Download the data and unzip all the .bz files in an empty folder.
-3. Call the function `LSALSTstack2NetCDF` from `lsalst2netcdf.py` using as arguments:
+3. Run the script `lsalst2netcdf.py` using as arguments:
     * the directory of the unzipped HDF5 data;
     * a savedir and a savename for the output netCDF4;
     * the bounding box lat/lon coordinates; and 
-    * the resolution of the output grid.
+    * the resolution of the output grid (optional).
+    
+    Example:
+    ```python
+   python lsalst2netcdf.py h5dir savedir savename latN, latS, lonW, lonE -r 0.05 0.05 
+   ```
 
 ## Useful links
 * [MLST LSA-001 Product Manual](https://landsaf.ipma.pt/GetDocument.do?id=746)
