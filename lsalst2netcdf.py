@@ -48,7 +48,7 @@ import numpy as np
 import os, sys
 from datetime import datetime
 from math import sin, cos, tan, asin, atan, sqrt, pow, radians, degrees
-from devtools import debug
+# from devtools import debug
 
 
 def __progressbar(total, iteration, message):
@@ -162,8 +162,8 @@ def _BBox2RowColGrids(bbox, hres, vres, product_attrs):
             abs(bbox["west_lon"] - bbox["east_lon"]) // hres + 1,
         )
 
-        print("\nbbox:", bbox)
-        print("grid_dim:", grid_dim[0])
+        # print("\nbbox:", bbox)
+        # print("grid_dim:", grid_dim[0])
         # debug(locals())
         lats = np.linspace(
                 start=bbox["north_lat"],
@@ -436,7 +436,7 @@ def LSALSTstack2NetCDF(
                     )
                     i += 1
 
-        debug(locals())
+        # debug(locals())
         nc_dims = LST.shape
 
     elapsed_time = datetime.now() - start
