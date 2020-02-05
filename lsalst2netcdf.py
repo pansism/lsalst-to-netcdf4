@@ -165,16 +165,16 @@ def _BBox2RowColGrids(bbox, hres, vres, product_attrs):
         print("grid_dim:", grid_dim[0])
         # debug(locals())
         lats = np.linspace(
-            start=bbox["north_lat"],
-            stop=bbox["south_lat"],
-            num=grid_dim[0],
-            endpoint=True,
-        )
+                start=bbox["north_lat"],
+                stop=bbox["south_lat"],
+                num=int(grid_dim[0]),
+                endpoint=True,
+                )
 
         lons = np.linspace(
             start=bbox["west_lon"],
             stop=bbox["east_lon"],
-            num=grid_dim[1],
+            num=int(grid_dim[1]),
             endpoint=True,
         )
 
