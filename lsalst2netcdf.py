@@ -156,6 +156,7 @@ def _BBox2RowColGrids(bbox, hres, vres, product_attrs):
     """
     if hres > 0 and vres > 0:
 
+        
         grid_dim = (
             abs(bbox["north_lat"] - bbox["south_lat"]) // vres + 1,
             abs(bbox["west_lon"] - bbox["east_lon"]) // hres + 1,
@@ -243,6 +244,8 @@ def _GetDataFromHDF5(h5_filepath, row_grid, col_grid, product_attrs):
                   are valid; (2,3,4) the gridded LST, QF and errorbars datasets;\
                   and (5) the LST acquisition time.
     """
+
+    # debug(locals())
     with h5py.File(h5_filepath, mode="r") as h5_file:
         if h5_file.attrs["PRODUCT_TYPE"] == product_attrs["PRODUCT_TYPE"]:
             LST_array, validscene_flag = _ReadH5DatasetAsArray(
@@ -433,6 +436,7 @@ def LSALSTstack2NetCDF(
                     )
                     i += 1
 
+        debug(locals())
         nc_dims = LST.shape
 
     elapsed_time = datetime.now() - start
