@@ -156,8 +156,8 @@ def _BBox2RowColGrids(bbox, hres, vres, product_attrs):
     if hres > 0 and vres > 0:
 
         grid_dim = (
-            abs(bbox["north_lat"] - bbox["south_lat"]) / vres + 1,
-            abs(bbox["west_lon"] - bbox["east_lon"]) / hres + 1,
+            abs(bbox["north_lat"] - bbox["south_lat"]) // vres + 1,
+            abs(bbox["west_lon"] - bbox["east_lon"]) // hres + 1,
         )
 
         lats = np.linspace(
